@@ -1,0 +1,11 @@
+FROM ghcr.io/jmarrero/ubuntu-bootc:latest
+
+RUN mkdir -p /var/lib/apt/lists/partial /var/cache/apt/archives/partial \
+             /var/lib/dpkg /var/log && \
+    touch /var/lib/dpkg/status && \
+    apt-get update && apt-get install -y tmux
+
+#COPY usr/ usr/
+
+# Bind the httpd container image
+#RUN ln -sr /usr/share/containers/systemd/httpd.container /usr/lib/bootc/bound-images.d/

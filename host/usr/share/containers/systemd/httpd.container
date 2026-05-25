@@ -1,0 +1,15 @@
+[Unit]
+Description=Ubuntu Summit Demo httpd server
+
+[Container]
+GlobalArgs=--storage-opt=additionalimagestore=/usr/lib/bootc/storage
+Image=ghcr.io/jmarrero/ubuntu-summit-26-demo-httpd:latest
+PublishPort=80:80
+ReadOnly=true
+SecurityLabelDisable=true
+Tmpfs=/run
+Tmpfs=/tmp
+Tmpfs=/var/log/apache2
+
+[Install]
+WantedBy=default.target

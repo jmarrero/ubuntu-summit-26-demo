@@ -1,0 +1,82 @@
+name: Build
+
+on:
+  schedule:
+    - cron: "21 21 * * *"
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+
+jobs:
+  build-httpd:
+    name: Build httpd container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.1.1
+
+      - name: Generate date tag
+        id: date
+        run: echo "tag=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Build container image
+        uses: redhat-actions/buildah-build@v2.13
+        with:
+          context: "."
+          containerfiles: Containerfile
+          image: ubuntu-summit-26-demo-httpd
+          tags: "latest ${{ steps.date.outputs.tag }}"
+          layers: false
+          oci: true
+
+      - name: Push to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/push-to-registry@v2.6
+        with:
+          image: ubuntu-summit-26-demo-httpd
+          tags: "latest ${{ steps.date.outputs.tag }}"
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+  build-host:
+    name: Build bootc host image
+    needs: build-httpd
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.1.1
+
+      - name: Build container image
+        uses: redhat-actions/buildah-build@v2.13
+        with:
+          context: "./host"
+          containerfiles: host/Containerfile
+          image: ubuntu-summit-26-demo-host
+          layers: false
+          oci: true
+
+      - name: Push to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/push-to-registry@v2.6
+        with:
+          image: ubuntu-summit-26-demo-host
+          tags: "latest"
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
