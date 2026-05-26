@@ -15,7 +15,7 @@ RUN rm -f /home /root /opt /mnt /srv && \
     printf "d /var/lib/snapd/snap 0755 root root -\n" >> /usr/lib/tmpfiles.d/bootc-base-dirs.conf && \
     systemctl enable snap.mount home.mount root.mount opt.mount mnt.mount srv.mount
 
-#COPY usr/ usr/
+COPY usr/ usr/
 
 # Bind the httpd container image
-#RUN ln -sr /usr/share/containers/systemd/httpd.container /usr/lib/bootc/bound-images.d/
+RUN ln -sr /usr/share/containers/systemd/httpd.container /usr/lib/bootc/bound-images.d/
