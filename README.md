@@ -40,3 +40,23 @@ podman run -p 8080:80 ubuntu-summit-26-demo-httpd:latest
 ```
 
 Then visit http://localhost:8080
+
+## Snap Support
+
+The host image replaces the ostree symlinks (`/home`, `/root`, `/opt`, `/mnt`, `/srv`) with real directories backed by systemd bind mount units so that `snap-confine` can work on composefs. A `snap.mount` unit also bind-mounts `/var/lib/snapd/snap` onto `/snap`.
+
+### Fixing home directory permissions after first boot
+
+If the system was originally provisioned (e.g. via cloud-init) before switching to this image, the home directory may be owned by `root`. Fix it after the first boot:
+
+```
+sudo chown -R <user>:<user> /home/<user>
+```
+
+For example:
+
+```
+sudo chown -R ubuntu:ubuntu /home/ubuntu
+```
+
+This is only needed once. Fresh deployments with this image will have correct ownership from the start.

@@ -5,6 +5,16 @@ RUN mkdir -p /var/lib/apt/lists/partial /var/cache/apt/archives/partial \
     touch /var/lib/dpkg/status && \
     apt-get update && apt-get install -y tmux
 
+# On ostree, /home /root /opt /mnt /srv are symlinks to /var/...
+# snap-confine can't rbind-mount through symlinks on composefs, so replace
+# them with real directories + bind mount units.
+COPY snap.mount home.mount root.mount opt.mount mnt.mount srv.mount \
+     /usr/lib/systemd/system/
+RUN rm -f /home /root /opt /mnt /srv && \
+    mkdir /home /root /opt /mnt /srv && \
+    printf "d /var/lib/snapd/snap 0755 root root -\n" >> /usr/lib/tmpfiles.d/bootc-base-dirs.conf && \
+    systemctl enable snap.mount home.mount root.mount opt.mount mnt.mount srv.mount
+
 #COPY usr/ usr/
 
 # Bind the httpd container image
